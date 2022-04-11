@@ -1,9 +1,24 @@
 # Live Stream
 
-A live streaming app working over RTMP protocol using Apache,node.js and Nginx which will work just fine on any OS and
+A live-streaming app working over RTMP protocol using Apache,node.js and Nginx which will work just fine on any OS and
 any server
 
+https://obsproject.com/forum/threads/how-to-set-up-your-own-private-rtmp-server-using-nginx.12891/
+
+jwplayer("myElement").setup({
+  file: "rtmp://<Ubuntu VM server ip>/live/flv:test",
+  height: 360,
+  width: 640
+});
+
 ### Dig Notes
+https://askubuntu.com/questions/460710/why-is-the-index-php-downloaded-instead-of-rendered-by-nginx
+
+https://blog.twitch.tv/en/2017/10/10/live-video-transmuxing-transcoding-f-fmpeg-vs-twitch-transcoder-part-i-489c1c125f28/
+
+https://www.nginx.com/blog/video-streaming-for-remote-learning-with-nginx/
+
+ffmpeg -re -I bbb_sunflower_1080p_60fps_normal.mp4 -vcodec copy -loop -1 -c:a aac -b:a 160k -ar 44100 -strict -2 -f flv rtmp:192.168.1.138/live/bbb
 
 https://github.com/arut/nginx-rtmp-module/issues/1174
 rec folder must be created manually
@@ -19,6 +34,29 @@ exec ffmpeg -i rtmp://localhost/src/$name
               -c:a aac -b:a 32k  -c:v libx264 -b:v 128K -f flv rtmp://localhost/hls/$name_low
               -c:a aac -b:a 64k  -c:v libx264 -b:v 256k -f flv rtmp://localhost/hls/$name_mid
               -c:a aac -b:a 128k -c:v libx264 -b:v 512K -f flv rtmp://localhost/hls/$name_hi;
+```
+
+
+https://github.com/arut/nginx-rtmp-module/wiki/Directives#record_path
+
+
+application naming - @link https://stackoverflow.com/questions/59922977/how-to-stream-with-ffmpeg-and-nginx-rtmp
+
+```
+exec_push ffmpeg
+                -i rtmp://localhost/live/$name 
+                -c:v libx264 
+                -c:a copy 
+                -preset veryfast 
+                -profile:v high 
+                -level 4.1
+                -x264-params "nal-hrd=cbr" "opencl=true"
+                -b:v 8000K 
+                -minrate 8000K 
+                -maxrate 8000K
+                -keyint 2
+                -s 1920x1080
+                push rtmp://live-lhr03.twitch.tv/app/STREAM_KEY;
 ```
 
 # Configuration and Usage
@@ -57,6 +95,8 @@ rtmp {
            # Push, restream RTMP
            # push rtmp://live.twitch.tv/app/YOUR_TWITCH_KEY;
            # push rtmp://a.rtmp.youtube.com/live2/YOUR_YOUTUBE_KEY;
+           # or dynamically using exec and ffmpeg @link https://stackoverflow.com/questions/70282613/nginx-rtmp-module-restream-to-a-dynamic-address/70749254#70749254
+           
        
        }
 
